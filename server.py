@@ -84,20 +84,20 @@ def create_bot():
 
     return jsonify(response)  # Return the JSON response
 
-# @app.route('/bot/history/<bot_id>', methods=['GET'])
-# def get_bot_history(bot_id):
-#     matched_bots = Bot.query.filter_by(id=bot_id).all()
-#     if matched_bots is None or len(matched_bots) == 0:
-#         return jsonify({ "error": "Cannot find bot" }), 500
+@app.route('/bot/history/<bot_id>', methods=['GET'])
+def get_bot_history(bot_id):
+    matched_bots = Bot.query.filter_by(id=bot_id).all()
+    if matched_bots is None or len(matched_bots) == 0:
+        return jsonify({ "error": "Cannot find bot" }), 500
 
-#     bot = matched_bots[0]
+    bot = matched_bots[0]
 
-#     response = {
-#         'data': bot.history,
-#         'status': 'Success'
-#     }
+    response = {
+        'data': bot.history,
+        'status': 'Success'
+    }
 
-#     return jsonify(response)
+    return jsonify(response)
 
 @app.route('/<bot_id>', methods=['POST'])
 @cross_origin()
