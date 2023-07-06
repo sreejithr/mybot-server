@@ -49,6 +49,9 @@ class Note(db.Model):
 # Add administrative views here
 admin.add_view(ModelView(Bot, db.session))
 admin.add_view(ModelView(Note, db.session))
+
+with app.app_context():
+    db.create_all()
     
 @app.route('/bot', methods=['POST'])
 def create_bot():
