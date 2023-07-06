@@ -44,7 +44,7 @@ class Bot(db.Model):
 
     def __repr__(self):
         return f'<Bot {self.name}>'
-    
+
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text)
@@ -53,7 +53,7 @@ class Note(db.Model):
 
     def __repr__(self):
         return f'<Note {self.id}>'
-    
+
 # Add administrative views here
 admin.add_view(ModelView(Bot, db.session))
 admin.add_view(ModelView(Note, db.session))
@@ -81,7 +81,20 @@ def create_bot():
         'data': bot.id
     }
 
-    return jsonify(response)  # Return the JSON response
+    return jsonify(response)
+
+@cross_origin()
+@app.route('/bot', methods=['GET'])
+def get_bots():
+    bots = Bot.query.all()
+
+    # Create a JSON response
+    response = {
+        'message': 'Success',
+        'data': [{ "id": bot.id, "name": bot.name, "prompt": bot.prompt } for bot in bots]
+    }
+
+    return jsonify(response)
 
 @cross_origin
 @app.route('/bot/history/<bot_id>', methods=['GET', 'OPTIONS'])
