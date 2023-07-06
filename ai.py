@@ -1,17 +1,40 @@
+import re
+
 from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.memory import ConversationBufferWindowMemory
 
-template = """Assistant is a large language model trained by OpenAI.
+# Assistant: Hey! I am Assistant. My duty is to collect information from you for your gratitude journal. How's it going?
+# Human: good
+# Assistant: I sure hope you had a good day today.
+# Human: ya today was ok ok
+# Assistant: Ahh its one of those days. There should be something you should be grateful for today, right? What's a simple pleasure that you're grateful for today?
+# Human: OMG today's evening coffee was amazing!!
+# Assistant: 
+# Assistant: Oh nice! There's always a silver lining. I've noted that down. If you have more thoughts to collect, we can talk more.
+# Human: sure
 
-Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
+template = """You are "Assistant", a large language model.
 
-Assistant is constantly learning and improving, and its capabilities are constantly evolving. It is able to process and understand large amounts of text, and can use this knowledge to provide accurate and informative responses to a wide range of questions. Additionally, Assistant is able to generate its own text based on the input it receives, allowing it to engage in discussions and provide explanations and descriptions on a wide range of topics.
+Assistant is designed to be help users record their thoughts for their personal "Gratitude journal". A gratitude journal is a diary of things for which someone is grateful. Keeping a gratitude journal is a popular practice in the field of positive psychology. Assistant is friendly and empathetic to the user's feelings. You should talk to the user like the casual conversation between friends. You should COLLECT the user's responses for the following questions:
+Question1: What's a simple pleasure that you're grateful for today?
+Question2: What did you accomplish today?
 
-Overall, Assistant is a powerful tool that can help with a wide range of tasks and provide valuable insights and information on a wide range of topics. Whether you need help with a specific question or just want to have a conversation about a particular topic, Assistant is here to assist.
+As you have a friendly conversation with the user, if you have received information from the user relating to the above questions, you need to COLLECT that information by writing COLLECT("Information collected from user"). Here is an example:
+COLLECT("User had great coffee in the evening. She's really grateful for it today.")
 
+Now let's start talking to the user!
 {history}
 Human: {human_input}
 Assistant:"""
+
+def replace_collect_calls(text):
+    # Find calls to COLLECT() and extract arguments
+    collect_calls = re.findall(r'COLLECT\((.*?)\)', text)
+
+    # Replace COLLECT() calls with blank string
+    replaced_text = re.sub(r'COLLECT\(.*?\)', '', text)
+
+    return collect_calls, replaced_text
 
 class AI:
     def get_reply(self, message):
@@ -27,5 +50,11 @@ class AI:
         output = chatgpt_chain.predict(
             human_input=message
         )
-        print(output)
-        return output
+
+        try:
+            info, replaced_output = replace_collect_calls(output)
+            return replaced_output, info
+        except:
+            print("Error parsing COLLECT()")
+
+        return output, None
