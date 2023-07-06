@@ -25,7 +25,7 @@ app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
 
-CORS(app, origins=["127.0.0.1:3000"])
+CORS(app)
 db = SQLAlchemy(app)
 admin = Admin(app, name='MyBots', template_mode='bootstrap3')
 sess = Session()
@@ -49,7 +49,6 @@ class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text)
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
-    #bot_id = db.relationship("Bot", backref="note", lazy='dynamic', primaryjoin="Note.id == Bot.id")
     bot_id = db.Column(db.Integer, db.ForeignKey('bot.id'))
 
     def __repr__(self):
@@ -61,9 +60,9 @@ admin.add_view(ModelView(Note, db.session))
 
 with app.app_context():
     db.create_all()
-    
-@app.route('/bot', methods=['POST'])
+
 @cross_origin()
+@app.route('/bot', methods=['POST'])
 def create_bot():
     data = request.get_json()  # Get the JSON data from the request
     # Perform any necessary processing on the data
@@ -84,7 +83,8 @@ def create_bot():
 
     return jsonify(response)  # Return the JSON response
 
-@app.route('/bot/history/<bot_id>', methods=['GET'])
+@cross_origin
+@app.route('/bot/history/<bot_id>', methods=['GET', 'OPTIONS'])
 def get_bot_history(bot_id):
     matched_bots = Bot.query.filter_by(id=bot_id).all()
     if matched_bots is None or len(matched_bots) == 0:
@@ -99,8 +99,8 @@ def get_bot_history(bot_id):
 
     return jsonify(response)
 
+@cross_origin
 @app.route('/<bot_id>', methods=['POST'])
-@cross_origin()
 def process_request(bot_id):
     data = request.get_json()  # Get the JSON data from the request
 
@@ -135,16 +135,7 @@ def process_request(bot_id):
         'recorded_info': record_info
     }
 
-    # final_response = jsonify(response).headers.add('Access-Control-Allow-Origin', '*')
     return jsonify(response)
-
-@app.after_request
-def after_request(response):
-  response.headers.add('Access-Control-Allow-Origin', 'http://127.0.0.1:3000')
-  response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-  response.headers.add('Access-Control-Allow-Credentials', 'true')
-  return response
 
 if __name__ == '__main__':
     app.run()
