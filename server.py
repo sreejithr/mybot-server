@@ -91,7 +91,7 @@ def get_bots():
     # Create a JSON response
     response = {
         'message': 'Success',
-        'data': [{ "id": bot.id, "name": bot.name, "prompt": bot.prompt } for bot in bots]
+        'data': [{ "id": bot.id, "name": bot.name, "prompt": bot.prompt, "history": bot.history } for bot in bots]
     }
 
     return jsonify(response)
